@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+            http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="cw-001-create-car-wash-station" author="dev">
+        <createTable tableName="car_wash_station">
+            <column name="id" type="uuid" defaultValueComputed="gen_random_uuid()">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="external_id" type="varchar(100)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="name" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="address" type="varchar(500)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="latitude" type="decimal(10,7)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="longitude" type="decimal(10,7)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="status" type="varchar(20)" defaultValue="ACTIVE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="working_hours_from" type="varchar(5)"/>
+            <column name="working_hours_until" type="varchar(5)"/>
+            <column name="is_24h" type="boolean" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <createIndex tableName="car_wash_station" indexName="idx_carwash_location">
+            <column name="latitude"/>
+            <column name="longitude"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="cw-002-create-wash-box" author="dev">
+        <createTable tableName="wash_box">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="station_id" type="uuid">
+                <constraints nullable="false" foreignKeyName="fk_box_station"
+                             references="car_wash_station(id)"/>
+            </column>
+            <column name="number" type="integer">
+                <constraints nullable="false"/>
+            </column>
+            <column name="status" type="varchar(20)" defaultValue="FREE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="type" type="varchar(20)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="cw-003-create-wash-program" author="dev">
+        <createTable tableName="wash_program">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="station_id" type="uuid">
+                <constraints nullable="false" foreignKeyName="fk_program_station"
+                             references="car_wash_station(id)"/>
+            </column>
+            <column name="name" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="varchar(500)"/>
+            <column name="duration_minutes" type="integer">
+                <constraints nullable="false"/>
+            </column>
+            <column name="price" type="integer">
+                <constraints nullable="false"/>
+            </column>
+            <column name="discounted_price" type="integer"/>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="cw-004-create-car-wash-order" author="dev">
+        <createTable tableName="car_wash_order">
+            <column name="id" type="uuid" defaultValueComputed="gen_random_uuid()">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="external_order_id" type="varchar(100)"/>
+            <column name="station_id" type="uuid">
+                <constraints nullable="false" foreignKeyName="fk_cw_order_station"
+                             references="car_wash_station(id)"/>
+            </column>
+            <column name="box_number" type="integer">
+                <constraints nullable="false"/>
+            </column>
+            <column name="program_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="customer_id" type="uuid">
+                <constraints nullable="false"/>
+            </column>
+            <column name="status" type="varchar(20)" defaultValue="PENDING">
+                <constraints nullable="false"/>
+            </column>
+            <column name="price" type="integer">
+                <constraints nullable="false"/>
+            </column>
+            <column name="payment_url" type="varchar(1000)"/>
+            <column name="platform" type="varchar(20)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <createIndex tableName="car_wash_order" indexName="idx_cw_order_customer">
+            <column name="customer_id"/>
+        </createIndex>
+        <createIndex tableName="car_wash_order" indexName="idx_cw_order_status">
+            <column name="status"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>

@@ -1,0 +1,207 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+            http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="001-create-customer" author="dev">
+        <createTable tableName="customer">
+            <column name="id" type="uuid" defaultValueComputed="gen_random_uuid()">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="messenger_user_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="platform" type="varchar(20)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="first_name" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="last_name" type="varchar(255)"/>
+            <column name="username" type="varchar(255)"/>
+            <column name="phone_number" type="varchar(20)"/>
+            <column name="onboarding_status" type="varchar(20)" defaultValue="NOT_STARTED">
+                <constraints nullable="false"/>
+            </column>
+            <column name="preferred_fuel_type" type="varchar(20)"/>
+            <column name="tank_volume" type="decimal(6,1)"/>
+            <column name="bonus_balance" type="bigint" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="referral_source" type="varchar(100)"/>
+            <column name="created_at" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addUniqueConstraint tableName="customer"
+                             columnNames="messenger_user_id, platform"
+                             constraintName="uq_customer_messenger_platform"/>
+        <createIndex tableName="customer" indexName="idx_customer_messenger">
+            <column name="messenger_user_id"/>
+            <column name="platform"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="002-create-brand-gas-station" author="dev">
+        <createTable tableName="brand_gas_station">
+            <column name="id" type="uuid" defaultValueComputed="gen_random_uuid()">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="code" type="varchar(50)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="name" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="logo_url" type="varchar(500)"/>
+            <column name="is_active" type="boolean" defaultValueBoolean="true">
+                <constraints nullable="false"/>
+            </column>
+            <column name="discount_applicable" type="boolean" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="003-create-gas-station" author="dev">
+        <createTable tableName="gas_station">
+            <column name="id" type="uuid" defaultValueComputed="gen_random_uuid()">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="external_id" type="varchar(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="brand_id" type="uuid">
+                <constraints nullable="false" foreignKeyName="fk_gas_station_brand"
+                             references="brand_gas_station(id)"/>
+            </column>
+            <column name="name" type="varchar(255)"/>
+            <column name="address" type="varchar(500)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="latitude" type="decimal(10,7)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="longitude" type="decimal(10,7)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="status" type="varchar(20)" defaultValue="ACTIVE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="service_type" type="varchar(20)" defaultValue="CLASSIC">
+                <constraints nullable="false"/>
+            </column>
+            <column name="sbp_enabled" type="boolean" defaultValueBoolean="true">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="bigint"/>
+        </createTable>
+        <createIndex tableName="gas_station" indexName="idx_gas_station_location">
+            <column name="latitude"/>
+            <column name="longitude"/>
+        </createIndex>
+        <createIndex tableName="gas_station" indexName="idx_gas_station_brand">
+            <column name="brand_id"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="004-create-fueling-order" author="dev">
+        <createTable tableName="fueling_order">
+            <column name="id" type="uuid" defaultValueComputed="gen_random_uuid()">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="partner_order_id" type="uuid"/>
+            <column name="customer_id" type="uuid">
+                <constraints nullable="false" foreignKeyName="fk_order_customer"
+                             references="customer(id)"/>
+            </column>
+            <column name="gas_station_id" type="uuid">
+                <constraints nullable="false"/>
+            </column>
+            <column name="column_id" type="bigint"/>
+            <column name="column_number" type="integer">
+                <constraints nullable="false"/>
+            </column>
+            <column name="nozzle_id" type="bigint"/>
+            <column name="fuel_type" type="varchar(20)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="requested_amount" type="decimal(8,2)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="actual_amount" type="decimal(8,2)"/>
+            <column name="requested_sum" type="decimal(10,2)"/>
+            <column name="actual_sum" type="decimal(10,2)"/>
+            <column name="fuel_price" type="decimal(8,2)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="discounted_fuel_price" type="decimal(8,2)"/>
+            <column name="partner_client_price" type="decimal(8,2)"/>
+            <column name="payment_url" type="varchar(1000)"/>
+            <column name="payment_type" type="varchar(30)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="status" type="varchar(20)" defaultValue="PENDING">
+                <constraints nullable="false"/>
+            </column>
+            <column name="fail_reason" type="varchar(255)"/>
+            <column name="sbp_subscription_id" type="uuid"/>
+            <column name="promo_code_id" type="uuid"/>
+            <column name="booster_id" type="uuid"/>
+            <column name="campaign_id" type="uuid"/>
+            <column name="platform" type="varchar(20)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="is_test" type="boolean" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <createIndex tableName="fueling_order" indexName="idx_order_customer">
+            <column name="customer_id"/>
+        </createIndex>
+        <createIndex tableName="fueling_order" indexName="idx_order_partner">
+            <column name="partner_order_id"/>
+        </createIndex>
+        <createIndex tableName="fueling_order" indexName="idx_order_status">
+            <column name="status"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="005-create-bonus" author="dev">
+        <createTable tableName="bonus_transaction">
+            <column name="id" type="uuid" defaultValueComputed="gen_random_uuid()">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="customer_id" type="uuid">
+                <constraints nullable="false" foreignKeyName="fk_bonus_tx_customer"
+                             references="customer(id)"/>
+            </column>
+            <column name="order_id" type="uuid"/>
+            <column name="type" type="varchar(30)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="amount" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="varchar(255)"/>
+            <column name="timestamp" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <createIndex tableName="bonus_transaction" indexName="idx_bonus_tx_customer">
+            <column name="customer_id"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>

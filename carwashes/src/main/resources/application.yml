@@ -1,0 +1,40 @@
+spring:
+  application:
+    name: fuelup-carwashes
+
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/fuelup}
+    username: ${SPRING_DATASOURCE_USERNAME:fuelup}
+    password: ${SPRING_DATASOURCE_PASSWORD}
+    hikari:
+      maximum-pool-size: 10
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+
+  threads:
+    virtual:
+      enabled: true
+
+server:
+  port: 8083
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,prometheus
+
+fuelup:
+  internal:
+    api-key: ${INTERNAL_API_KEY}
+  carwash:
+    partner:
+      url: ${CARWASH_PARTNER_URL:https://api.partner.example.com}
+      api-key: ${CARWASH_PARTNER_KEY}
+
+logging:
+  level:
+    ru.fuelup: INFO

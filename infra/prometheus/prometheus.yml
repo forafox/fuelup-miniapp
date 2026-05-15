@@ -1,0 +1,47 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+rule_files:
+  - "alert_rules.yml"
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: []
+
+scrape_configs:
+  - job_name: "prometheus"
+    static_configs:
+      - targets: ["localhost:9090"]
+
+  - job_name: "fuelup-backend"
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ["backend:8080"]
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+
+  - job_name: "fuelup-tg-bot"
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ["tg-bot:8081"]
+
+  - job_name: "fuelup-max-bot"
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ["max-bot:8082"]
+
+  - job_name: "fuelup-carwashes"
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ["carwashes:8083"]
+
+  - job_name: "postgres-exporter"
+    static_configs:
+      - targets: ["postgres-exporter:9187"]
+
+  - job_name: "redis-exporter"
+    static_configs:
+      - targets: ["redis-exporter:9121"]

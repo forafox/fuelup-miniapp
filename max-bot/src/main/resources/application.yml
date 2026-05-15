@@ -1,0 +1,31 @@
+spring:
+  application:
+    name: fuelup-max-bot
+
+server:
+  port: 8082
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,prometheus
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+
+max:
+  bot:
+    token: ${MAX_BOT_TOKEN}
+    base-url: https://botapi.max.ru
+  mode: ${MAX_BOT_MODE:polling}
+
+fuelup:
+  backend:
+    url: ${BACKEND_URL:http://backend:8080}
+    internal-api-key: ${INTERNAL_API_KEY}
+
+logging:
+  level:
+    ru.fuelup: INFO

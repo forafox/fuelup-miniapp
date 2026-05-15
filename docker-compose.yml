@@ -1,0 +1,123 @@
+name: fuelup
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: fuelup
+      POSTGRES_USER: fuelup
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U fuelup"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - fuelup_net
+
+  redis:
+    image: redis:7-alpine
+    command: redis-server --requirepass ${REDIS_PASSWORD}
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    networks:
+      - fuelup_net
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/fuelup
+      SPRING_DATASOURCE_USERNAME: fuelup
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PASSWORD: ${REDIS_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
+      PARTNER_API_URL: ${PARTNER_API_URL}
+      PARTNER_API_KEY: ${PARTNER_API_KEY}
+      INTERNAL_API_KEY: ${INTERNAL_API_KEY}
+      LOKI_URL: http://loki:3100
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.backend.rule=Host(`${BACKEND_HOST}`)"
+      - "traefik.http.routers.backend.tls.certresolver=letsencrypt"
+      - "traefik.http.services.backend.loadbalancer.server.port=8080"
+    networks:
+      - fuelup_net
+
+  tg-bot:
+    build:
+      context: ./tg-bot
+      dockerfile: Dockerfile
+    environment:
+      BACKEND_URL: http://backend:8080
+      INTERNAL_API_KEY: ${INTERNAL_API_KEY}
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
+      TELEGRAM_WEBHOOK_SECRET: ${TELEGRAM_WEBHOOK_SECRET}
+      TELEGRAM_MINI_APP_URL: ${TELEGRAM_MINI_APP_URL}
+      LOKI_URL: http://loki:3100
+    depends_on:
+      - backend
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.tg-bot.rule=Host(`${BACKEND_HOST}`) && PathPrefix(`/webhook/telegram`)"
+      - "traefik.http.services.tg-bot.loadbalancer.server.port=8081"
+    networks:
+      - fuelup_net
+
+  max-bot:
+    build:
+      context: ./max-bot
+      dockerfile: Dockerfile
+    environment:
+      BACKEND_URL: http://backend:8080
+      INTERNAL_API_KEY: ${INTERNAL_API_KEY}
+      MAX_BOT_TOKEN: ${MAX_BOT_TOKEN}
+      MAX_BOT_MODE: ${MAX_BOT_MODE:-polling}
+      LOKI_URL: http://loki:3100
+    depends_on:
+      - backend
+    networks:
+      - fuelup_net
+
+  carwashes:
+    build:
+      context: ./carwashes
+      dockerfile: Dockerfile
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/fuelup
+      SPRING_DATASOURCE_USERNAME: fuelup
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+      INTERNAL_API_KEY: ${INTERNAL_API_KEY}
+      CARWASH_PARTNER_URL: ${CARWASH_PARTNER_URL}
+      CARWASH_PARTNER_KEY: ${CARWASH_PARTNER_KEY}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.carwashes.rule=Host(`${BACKEND_HOST}`) && PathPrefix(`/api/v1/carwashes`)"
+      - "traefik.http.services.carwashes.loadbalancer.server.port=8083"
+    networks:
+      - fuelup_net
+
+networks:
+  fuelup_net:
+    external: true
+
+volumes:
+  postgres_data:
+  redis_data:

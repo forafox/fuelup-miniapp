@@ -1,0 +1,32 @@
+spring:
+  application:
+    name: fuelup-tg-bot
+
+server:
+  port: 8081
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,prometheus
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+
+telegram:
+  bot:
+    token: ${TELEGRAM_BOT_TOKEN}
+    webhook-path: /webhook/telegram
+    webhook-secret: ${TELEGRAM_WEBHOOK_SECRET:}
+  mini-app-url: ${TELEGRAM_MINI_APP_URL:https://t.me/your_bot/app}
+
+fuelup:
+  backend:
+    url: ${BACKEND_URL:http://backend:8080}
+    internal-api-key: ${INTERNAL_API_KEY}
+
+logging:
+  level:
+    ru.fuelup: INFO

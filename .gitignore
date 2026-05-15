@@ -1,0 +1,41 @@
+# Environment
+.env
+.env.*
+!.env.example
+
+# Build outputs
+backend/*/build/
+backend/build/
+frontend/dist/
+frontend/node_modules/
+tg-bot/build/
+max-bot/build/
+carwashes/build/
+load-testing/build/
+load-testing/results/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+*.DS_Store
+
+# Logs
+*.log
+logs/
+
+# Gradle
+.gradle/
+gradle-wrapper.jar
+
+# Java
+*.class
+*.jar
+!gradle/wrapper/gradle-wrapper.jar
+
+# Node (lock file committed intentionally — remove this line if you use pnpm)
+# pnpm-lock.yaml
+
+# Secrets
+*.p12
+*.jks
